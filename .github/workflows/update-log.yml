@@ -39,4 +39,4 @@ jobs:
           git config --local user.name "GitHub Action Bot"
           git add commit-log.txt
           git commit -m "Log added files" || true
-          git push origin HEAD:main
+          git push https://adnan-sharief:${{ secrets.PAT_TOKEN }}@github.com/adnan-sharief/firstrepo.git HEAD:main
