@@ -1,0 +1,42 @@
+name: Log Only Added Files
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  log-added-files:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Get list of added files
+        id: added
+        run: |
+          ADDED_FILES=$(git diff --name-status HEAD~1 HEAD | grep "^A" | cut -f2- || true)
+          echo "files=$ADDED_FILES" >> $GITHUB_OUTPUT
+
+      - name: Skip if no new files
+        if: ${{ steps.added.outputs.files == '' }}
+        run: echo "No new files added."
+
+      - name: Append to log
+        if: ${{ steps.added.outputs.files != '' }}
+        run: |
+          echo "New files added on $(date):" >> commit-log.txt
+          echo "${{ steps.added.outputs.files }}" >> commit-log.txt
+          echo "" >> commit-log.txt
+
+      - name: Commit and push log
+        if: ${{ steps.added.outputs.files != '' }}
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+          git add commit-log.txt
+          git commit -m "Log added files" || true
+          git push origin HEAD:main
